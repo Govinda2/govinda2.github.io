@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Adventures for Kids!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 { color: #4a4a4a; }
+        .game-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 60px);
+            grid-gap: 5px;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .cell {
+            width: 60px;
+            height: 60px;
+            border: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+        }
+        #runButton { background-color: #2196F3; }
+        #resetButton { background-color: #f44336; }
+        .code-display {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Code Adventures for Kids!</h1>
+    <p>Help the star (⭐) reach the treasure (💎) by creating a path!</p>
+    <div class="game-container">
+        <div class="grid" id="grid"></div>
+        <div class="controls">
+            <button id="upButton">⬆️ Up</button>
+            <button id="rightButton">➡️ Right</button>
+            <button id="downButton">⬇️ Down</button>
+            <button id="leftButton">⬅️ Left</button>
+            <button id="runButton">▶️ Run</button>
+            <button id="resetButton">🔄 Reset</button>
+        </div>
+    </div>
+    <div class="code-display" id="codeDisplay">Your Code: </div>
+
+    <script>
+        const grid = document.getElementById('grid');
+        const codeDisplay = document.getElementById('codeDisplay');
+        const runButton = document.getElementById('runButton');
+        const resetButton = document.getElementById('resetButton');
+        let currentPosition = 0;
+        let code = [];
+        const gridSize = 5;
+        const treasurePosition = 24;
+
+        function createGrid() {
+            for (let i = 0; i < gridSize * gridSize; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                if (i === 0) cell.textContent = '⭐';
+                if (i === treasurePosition) cell.textContent = '💎';
+                grid.appendChild(cell);
+            }
+        }
+
+        function updateGrid() {
+            const cells = grid.children;
+            for (let i = 0; i < cells.length; i++) {
+                if (i !== treasurePosition) {
+                    cells[i].textContent = i === currentPosition ? '⭐' : '';
+                }
+            }
+        }
+
+        function addCommand(command) {
+            code.push(command);
+            codeDisplay.textContent = 'Your Code: ' + code.join(' ');
+        }
+
+        function runCode() {
+            currentPosition = 0;
+            updateGrid();
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i < code.length) {
+                    const command = code[i];
+                    switch(command) {
+                        case '⬆️':
+                            if (currentPosition >= gridSize) currentPosition -= gridSize;
+                            break;
+                        case '➡️':
+                            if (currentPosition % gridSize < gridSize - 1) currentPosition += 1;
+                            break;
+                        case '⬇️':
+                            if (currentPosition < gridSize * (gridSize - 1)) currentPosition += gridSize;
+                            break;
+                        case '⬅️':
+                            if (currentPosition % gridSize > 0) currentPosition -= 1;
+                            break;
+                    }
+                    updateGrid();
+                    i++;
+                } else {
+                    clearInterval(interval);
+                    if (currentPosition === treasurePosition) {
+                        alert('Congratulations! You found the treasure!');
+                    }
+                }
+            }, 500);
+        }
+
+        function resetGame() {
+            currentPosition = 0;
+            code = [];
+            codeDisplay.textContent = 'Your Code: ';
+            updateGrid();
+        }
+
+        createGrid();
+
+        document.getElementById('upButton').addEventListener('click', () => addCommand('⬆️'));
+        document.getElementById('rightButton').addEventListener('click', () => addCommand('➡️'));
+        document.getElementById('downButton').addEventListener('click', () => addCommand('⬇️'));
+        document.getElementById('leftButton').addEventListener('click', () => addCommand('⬅️'));
+        runButton.addEventListener('click', runCode);
+        resetButton.addEventListener('click', resetGame);
+    </script>
+</body>
+</html>
