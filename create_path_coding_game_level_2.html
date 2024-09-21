@@ -90,6 +90,15 @@
             justify-content: space-between;
             margin-top: 10px;
         }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4a4a4a;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
         #runButton { background-color: #2196F3; color: white; }
         #resetButton { background-color: #F44336; color: white; }
         #message {
@@ -120,6 +129,7 @@
         </div>
         <div id="message"></div>
     </div>
+    <a href="index.html" class="back-link">Back to Home</a>
 
     <script>
         const maze = [
@@ -256,6 +266,5 @@
         document.getElementById('sequenceArea').addEventListener('dragover', allowDrop);
         document.getElementById('sequenceArea').addEventListener('drop', drop);
     </script>
-     <a href="index.html" class="back-link">Back to Home</a>
 </body>
 </html>
