@@ -34,12 +34,12 @@
         }
         .maze {
             display: grid;
-            grid-template-columns: repeat(6, 50px);
-            gap: 2px;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 0px;
         }
         .cell {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             border: 1px solid #ccc;
             display: flex;
             justify-content: center;
@@ -56,7 +56,7 @@
             gap: 10px;
         }
         .sequence-area {
-            min-height: 200px;
+            min-height: 50px;
             border: 2px dashed #ccc;
             padding: 10px;
             margin-bottom: 10px;
@@ -114,22 +114,26 @@
         <div class="game-area">
             <div class="maze" id="maze"></div>
             <div class="code-area">
-                <div class="action-buttons">
+                
+            </div>
+        </div>
+		<div class="action-buttons">
                     <button id="runButton" onclick="runSequence()">Run</button>
                     <button id="resetButton" onclick="resetGame()">Reset</button>
                 </div>
-            </div>
-        </div>
+				 
 		<div class="sequence-area" id="sequenceArea"></div>
         <div class="command-buttons">
             <button onclick="addCommand('right')">→</button>
             <button onclick="addCommand('down')">↓</button>
             <button onclick="addCommand('left')">←</button>
             <button onclick="addCommand('up')">↑</button>
+			
         </div>
+		<a href="index.html" class="back-link">Back to Home</a>
         <div id="message"></div>
     </div>
-    <a href="index.html" class="back-link">Back to Home</a>
+   
 
     <script>
         const maze = [
