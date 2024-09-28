@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet Feeding Adventure: Learn If-Else</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+        }
+        .game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .pet {
+            font-size: 100px;
+            margin: 20px 0;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+        }
+        #result {
+            font-size: 24px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .logic-flow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .logic-row {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .logic-box {
+            width: 120px;
+            height: 70px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            margin: 0 10px;
+            position: relative;
+        }
+        .logic-label {
+            position: absolute;
+            top: -20px;
+            left: 5px;
+            font-size: 14px;
+            background-color: white;
+            padding: 0 5px;
+        }
+        .arrow {
+            font-size: 30px;
+        }
+        .highlight {
+            background-color: #ffff99;
+        }
+        .explanation {
+            font-size: 14px;
+            margin-top: 5px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Pet Feeding Adventure: Learn If-Else</h1>
+        <p>Help feed the correct food to the pet and learn about if-else statements!</p>
+        <div class="pet" id="pet">🐶</div>
+        <div>
+            <button onclick="feedPet('🦴')">Feed Bone 🦴</button>
+            <button onclick="feedPet('🐟')">Feed Fish 🐟</button>
+        </div>
+        <div id="result"></div>
+        <div class="logic-flow">
+            <div class="logic-row">
+                <div class="logic-box" id="petBox">
+                    <span class="logic-label">If</span>
+                    Pet?
+                </div>
+                <div class="arrow">➡️</div>
+                <div class="logic-box" id="foodBox">
+                    <span class="logic-label">Then</span>
+                    Food?
+                </div>
+                <div class="arrow">➡️</div>
+                <div class="logic-box" id="resultBox">
+                    <span class="logic-label">Result</span>
+                    ?
+                </div>
+            </div>
+            <div class="explanation">
+                If the pet is a dog or cat, then check what food is given, and show the result.
+            </div>
+            <div class="explanation">
+                The arrows show the order of the if-else statement: first check the pet, then the food, then show the result.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isPetDog = true;
+        updatePet();
+
+        function updatePet() {
+            const petElement = document.getElementById('pet');
+            petElement.textContent = isPetDog ? '🐶' : '🐱';
+            document.getElementById('petBox').innerHTML = `
+                <span class="logic-label">If</span>
+                ${isPetDog ? '🐶' : '🐱'}
+            `;
+        }
+
+        function feedPet(food) {
+            let resultMessage = '';
+            const foodBox = document.getElementById('foodBox');
+            const resultBox = document.getElementById('resultBox');
+
+            foodBox.innerHTML = `
+                <span class="logic-label">Then</span>
+                ${food}
+            `;
+            foodBox.classList.add('highlight');
+
+            if (isPetDog) {
+                if (food === '🦴') {
+                    resultMessage = 'Yay! The dog loves the bone! 🎉';
+                    resultBox.innerHTML = '<span class="logic-label">Result</span>😄';
+					alert(resultMessage);
+                } else {
+                    resultMessage = 'Oops! Dogs prefer bones over fish.';
+                    resultBox.innerHTML = '<span class="logic-label">Else</span>😕';
+					alert(resultMessage);
+                }
+            } else {
+                if (food === '🐟') {
+                    resultMessage = 'Purr! The cat loves the fish! 🎉';
+                    resultBox.innerHTML = '<span class="logic-label">Result</span>😄';
+					alert(resultMessage);
+                } else {
+                    resultMessage = 'Oops! Cats prefer fish over bones.';
+                    resultBox.innerHTML = '<span class="logic-label">Else</span>😕';
+					alert(resultMessage);
+                }
+            }
+
+            resultBox.classList.add('highlight');
+            document.getElementById('result').textContent = resultMessage;
+
+            setTimeout(() => {
+                foodBox.classList.remove('highlight');
+                resultBox.classList.remove('highlight');
+                isPetDog = !isPetDog;
+                updatePet();
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
