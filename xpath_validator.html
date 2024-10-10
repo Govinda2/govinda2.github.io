@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XPath Best Practices Checker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .output {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .error {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+        .warning {
+            color: #f57c00;
+            font-weight: bold;
+        }
+        .suggestion {
+            color: #1976d2;
+        }
+        .good {
+            color: #388e3c;
+        }
+        code {
+            background-color: #eee;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>XPath Best Practices Checker</h1>
+        <p>Enter Tilde(~)separated XPath locators:</p>
+        <textarea id="xpath-input" placeholder="Enter your XPath locators here..."></textarea>
+        <button onclick="checkXPath()">Check Best Practices</button>
+        <div id="output" class="output"></div>
+    </div>
+
+    <script>
+        function checkXPath() {
+            const input = document.getElementById("xpath-input").value;
+            const xpaths = input.split('~');
+            const outputDiv = document.getElementById("output");
+            outputDiv.innerHTML = ''; // Clear previous output
+
+            xpaths.forEach(xpath => {
+                const trimmedXPath = xpath.trim();
+                if (!trimmedXPath) return;
+
+                let suggestions = [];
+                let errors = false;
+                let warnings = false;
+
+                // Validate XPath
+                try {
+                    document.evaluate(trimmedXPath, document, null, XPathResult.ANY_TYPE, null);
+                } catch (e) {
+                    suggestions.push('<span class="error">Invalid XPath: This expression cannot be evaluated.</span>');
+                    outputDiv.innerHTML += `<p><strong>XPath:</strong> <code>${trimmedXPath}</code><br>${suggestions.join('<br>')}</p>`;
+                    return;
+                }
+
+                // Best practice checks
+                if (trimmedXPath.startsWith('/html') || trimmedXPath.startsWith('/body')) {
+                    suggestions.push('<span class="error">Avoid using absolute XPath starting from <code>/html</code> or <code>/body</code>. Use relative XPath for better maintainability.</span>');
+                    errors = true;
+                }
+
+                if (trimmedXPath.match(/\[\d+\]/)) {
+                    suggestions.push('<span class="error">Avoid using positional indexing like <code>[1]</code>. Use unique attributes or classes instead for more stable locators.</span>');
+                    errors = true;
+                }
+				
+                if (!trimmedXPath.includes('@') && !trimmedXPath.includes('text()')) {
+                    suggestions.push('<span class="warning">Consider using unique attributes (like <code>@id</code>, <code>@name</code>, or <code>@data-*</code>) to locate elements for more reliable selection.</span>');
+                    warnings = true;
+                }
+
+                if (trimmedXPath.includes('contains(') || trimmedXPath.includes('normalize-space(')) {
+                    suggestions.push('<span class="warning">Use XPath functions like <code>contains()</code> or <code>normalize-space()</code> sparingly. They can impact performance in large DOM trees.</span>');
+                    warnings = true;
+                }
+
+
+                if (trimmedXPath.length > 100) {
+                    suggestions.push('<span class="warning">This XPath is quite long. Consider simplifying it for better readability and maintenance.</span>');
+                    warnings = true;
+                }
+
+                // New checks
+                if (trimmedXPath.match(/\[@id=['"][^'"]*['"]]/)) {
+                    suggestions.push('<span class="good">Good practice: Using <code>@id</code> attribute for element selection is fast and reliable.</span>');
+                }
+
+                if (trimmedXPath.includes('following-sibling') || trimmedXPath.includes('preceding-sibling')) {
+                    suggestions.push('<span class="suggestion">Using sibling axes can be fragile if the DOM structure changes. Ensure this is the best approach for your use case.</span>');
+                }
+
+                if (trimmedXPath.match(/\/@[^\/]+$/)) {
+                    suggestions.push('<span class="suggestion">This XPath selects an attribute value. Make sure this is intentional, as Selenium usually works with elements, not attribute values directly.</span>');
+                }
+
+                // Output result
+                if (!errors && !warnings) {
+                    suggestions.push('<span class="good">This XPath follows best practices and should be reliable for Selenium automation.</span>');
+                }
+
+                outputDiv.innerHTML += `<p><strong>XPath:</strong> <code>${trimmedXPath}</code><br>${suggestions.join('<br>')}</p>`;
+            });
+        }
+    </script>
+</body>
+</html>
