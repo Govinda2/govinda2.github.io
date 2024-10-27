@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cURL to REST Assured Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .checkbox-group {
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .button,button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .error { color: red; }
+        .success { color: green; }
+        .example {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>cURL to REST Assured Converter</h1>
+        <div>
+            <h4>Input cURL Command:</h4>
+            <textarea id="curlInput" placeholder="curl -X 'POST' \
+            'https://test.example.com/endpoint' \
+            -H 'accept: application/json' \
+            -H 'Content-Type: application/json' \
+            -d '{
+            &quot;key&quot;: &quot;value&quot;
+          }'"
+            ></textarea>
+        </div>
+
+        <div class="checkbox-group">
+            <h3>Options:</h3>
+            <div>
+                <input type="checkbox" id="statusCode" checked>
+                <label for="statusCode">Status Code Assertion</label>
+            </div>
+            <div>
+                <input type="checkbox" id="contentType" checked>
+                <label for="contentType">Content Type Assertion</label>
+            </div>
+            <div>
+                <input type="checkbox" id="logging" checked>
+                <label for="logging">Request/Response Logging</label>
+            </div>
+            <div>
+                <input type="checkbox" id="imports" checked>
+                <label for="imports">Include Imports</label>
+            </div>
+        </div>
+
+        <button onclick="convertCurl()">Convert to REST Assured</button>
+        <div id="error" class="error"></div>
+        
+        <h2>REST Assured Test Case:</h2>
+        <textarea id="output" readonly></textarea>
+        <button onclick="copyToClipboard()">Copy to Clipboard</button>
+        <a href="utility_index.html" class="button">Back to Home</a>
+    </div>
+
+    <script>
+        function parseCurl(curlCommand) {
+            const command = curlCommand.trim();
+            if (!command.startsWith('curl')) {
+                throw new Error('Invalid cURL command. Command must start with "curl"');
+            }
+
+            const result = {
+                method: 'POST',
+                url: '',
+                headers: {},
+                body: null
+            };
+
+            // Split by spaces but preserve quoted strings
+            const parts = command.match(/(?:[^\s"']|"[^"]*"|'[^']*')+/g);
+            
+            for (let i = 1; i < parts.length; i++) {
+                const part = parts[i].replace(/^['"]|['"]$/g, '');
+                
+                if (part === '-H' || part === '--header') {
+                    const header = parts[++i].replace(/^['"]|['"]$/g, '');
+                    const [key, value] = header.split(/:\s*/);
+                    result.headers[key] = value;
+                } else if (part === '-d' || part === '--data') {
+                    let data = parts[++i].replace(/^['"]|['"]$/g, '');
+                    try {
+                        result.body = JSON.parse(data);
+                    } catch (e) {
+                        throw new Error('Invalid JSON data in request body');
+                    }
+                } else if (!part.startsWith('-')) {
+                    result.url = part.replace(/^['"]|['"]$/g, '');
+                }
+            }
+
+            return result;
+        }
+
+        function generateRestAssured(parsed, options) {
+            let code = '';
+            
+            if (options.imports) {
+                code += 'import io.restassured.RestAssured;\n';
+                code += 'import io.restassured.http.ContentType;\n';
+                code += 'import io.restassured.response.Response;\n';
+                code += 'import org.junit.jupiter.api.Test;\n';
+                code += 'import static io.restassured.RestAssured.given;\n';
+                code += 'import static org.hamcrest.Matchers.*;\n\n';
+            }
+
+            code += '@Test\n';
+            code += 'public void apiTest() {\n';
+            
+            if (parsed.body) {
+                code += '    // Request body\n';
+                code += `    String requestBody = """${JSON.stringify(parsed.body, null, 4)}""";\n\n`;
+            }
+
+            code += '    Response response = given()\n';
+            
+            if (options.logging) {
+                code += '        .log().all()\n';
+            }
+
+            if (Object.keys(parsed.headers).length > 0) {
+                Object.entries(parsed.headers).forEach(([key, value]) => {
+                    code += `        .header("${key}", "${value}")\n`;
+                });
+            }
+
+            if (parsed.body) {
+                code += '        .body(requestBody)\n';
+            }
+
+            code += '        .when()\n';
+            code += `        .${parsed.method.toLowerCase()}("${parsed.url}")\n`;
+            code += '        .then()\n';
+
+            if (options.logging) {
+                code += '        .log().all()\n';
+            }
+
+            if (options.statusCode) {
+                code += '        .statusCode(200)\n';
+            }
+
+            if (options.contentType) {
+                code += '        .contentType(ContentType.JSON)\n';
+            }
+
+            code += '        .extract().response();\n';
+            code += '}';
+
+            return code;
+        }
+
+        function convertCurl() {
+            const curlInput = document.getElementById('curlInput').value;
+            const error = document.getElementById('error');
+            const output = document.getElementById('output');
+            
+            try {
+                error.textContent = '';
+                const parsed = parseCurl(curlInput);
+                
+                const options = {
+                    statusCode: document.getElementById('statusCode').checked,
+                    contentType: document.getElementById('contentType').checked,
+                    logging: document.getElementById('logging').checked,
+                    imports: document.getElementById('imports').checked
+                };
+
+                const restAssured = generateRestAssured(parsed, options);
+                output.value = restAssured;
+            } catch (e) {
+                error.textContent = e.message;
+                output.value = '';
+            }
+        }
+
+        function copyToClipboard() {
+            const output = document.getElementById('output');
+            output.select();
+            document.execCommand('copy');
+            
+            const error = document.getElementById('error');
+            error.textContent = 'Copied to clipboard!';
+            error.className = 'success';
+            
+            setTimeout(() => {
+                error.textContent = '';
+                error.className = 'error';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
