@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Data Genie</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .input-section {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .category {
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            display: none;
+        }
+        .category-title {
+            margin-bottom: 10px;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 2px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .copy-button {
+            background: #2196F3;
+        }
+        .copy-button:hover {
+            background: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Data Generator</h1>
+        
+        <div class="input-section">
+            <textarea id="outputField" placeholder="Generated test data will appear here..."></textarea>
+            <button class="copy-button" onclick="copyToClipboard()">Copy to Clipboard</button>
+            <button onclick="clearOutput()">Clear</button>
+        </div>
+
+        <div class="input-section">
+            <label for="categorySelect">Select Category:</label>
+            <select id="categorySelect" onchange="showCategory()">
+                <option value="">--Select--</option>
+                <option value="email">Email Addresses</option>
+                <option value="name">Names</option>
+                <option value="number">Numbers</option>
+                <option value="creditCard">Credit Cards</option>
+                <option value="date">Dates</option>
+                <option value="specialChars">Special Characters</option>
+                <option value="url">URLs</option>
+                <option value="phone">Phone Numbers</option>
+                <option value="password">Password</option>
+            </select>
+        </div>
+
+        <div id="email" class="category">
+            <div class="category-title">Email Addresses</div>
+            <button onclick="generateEmail('valid')">Valid Email</button>
+            <button onclick="generateEmail('special')">Special Characters</button>
+            <button onclick="generateEmail('long')">Long Email</button>
+            <button onclick="generateEmail('invalid')">Invalid Email</button>
+        </div>
+
+        <div id="name" class="category">
+            <div class="category-title">Names</div>
+            <button onclick="generateName('english')">English</button>
+            <button onclick="generateName('chinese')">Chinese</button>
+            <button onclick="generateName('arabic')">Arabic</button>
+            <button onclick="generateName('special')">Special Characters</button>
+            <button onclick="generateName('very-long')">Very Long Name</button>
+        </div>
+
+        <div id="number" class="category">
+            <div class="category-title">Numbers</div>
+            <button onclick="generateNumber('integer')">Integer</button>
+            <button onclick="generateNumber('decimal')">Decimal</button>
+            <button onclick="generateNumber('negative')">Negative</button>
+            <button onclick="generateNumber('scientific')">Scientific Notation</button>
+            <button onclick="generateNumber('special')">Special Values</button>
+        </div>
+
+        <div id="creditCard" class="category">
+            <div class="category-title">Credit Cards</div>
+            <button onclick="generateCreditCard('visa')">Visa</button>
+            <button onclick="generateCreditCard('mastercard')">Mastercard</button>
+            <button onclick="generateCreditCard('amex')">American Express</button>
+            <button onclick="generateCreditCard('invalid')">Invalid Format</button>
+        </div>
+
+        <div id="date" class="category">
+            <div class="category-title">Dates</div>
+            <button onclick="generateDate('us')">US Format</button>
+            <button onclick="generateDate('eu')">EU Format</button>
+            <button onclick="generateDate('iso')">ISO Format</button>
+            <button onclick="generateDate('invalid')">Invalid Date</button>
+        </div>
+
+        <div id="specialChars" class="category">
+            <div class="category-title">Special Characters</div>
+            <button onclick="generateSpecialChars('sql')">SQL Injection</button>
+            <button onclick="generateSpecialChars('html')">HTML Tags</button>
+            <button onclick="generateSpecialChars('emoji')">Emojis</button>
+            <button onclick="generateSpecialChars('unicode')">Unicode</button>
+        </div>
+
+        <div id="url" class="category">
+            <div class="category-title">URLs</div>
+            <button onclick="generateURL('simple')">Simple URL</button>
+            <button onclick="generateURL('complex')">Complex URL</button>
+            <button onclick="generateURL('special')">Special Characters</button>
+            <button onclick="generateURL('invalid')">Invalid URL</button>
+        </div>
+
+        <div id="phone" class="category">
+            <div class="category-title">Phone Numbers</div>
+            <button onclick="generatePhone('us')">US Format</button>
+            <button onclick="generatePhone('uk')">UK Format</button>
+            <button onclick="generatePhone('international')">International</button>
+            <button onclick="generatePhone('invalid')">Invalid Format</button>
+        </div>
+
+        <div id="password" class="category">
+            <div class="category-title">Passwords</div>
+            <button onclick="generatePassword('simple')">Simple Password</button>
+            <button onclick="generatePassword('complex')">Complex Password</button>
+            <button onclick="generatePassword('special')">Special Characters</button>
+            <button onclick="generatePassword('long')">Long Password</button>
+        </div>
+    </div>
+
+    <script>
+        const testData = {
+            email: {
+                valid: [
+                    'test@example.com',
+                    'user.name@domain.com',
+                    'email@subdomain.domain.com'
+                ],
+                special: [
+                    'test+label@example.com',
+                    'test.name@domain.com',
+                    'special_chars@domain.com'
+                ],
+                long: [
+                    'very.long.email.address.that.is.really.long@really.long.domain.name.com',
+                    'another.really.long.email@with.lots.of.subdomains.com'
+                ],
+                invalid: [
+                    'invalid@email',
+                    '@no-username.com',
+                    'no-at-sign.domain.com'
+                ]
+            },
+            name: {
+                english: [
+                    'John Smith',
+                    'Mary Johnson',
+                    'William Connor'
+                ],
+                chinese: [
+                    'Zhang Wei',
+                    'Wang Fang',
+                    'Li Wei'
+                ],
+                arabic: [
+                    'Mohammed Ahmed',
+                    'Fatima Ali',
+                    'Abdullah'
+                ],
+                special: [
+                    'Maria-Jose',
+                    'Jean-Pierre',
+                    'Soren Akesson'
+                ],
+                'very-long': [
+                    'Johannes Chrysostomus Wolfgangus Theophilus Mozart',
+                    'Pablo Diego Jose Francisco de Paula Juan Nepomuceno Maria de los Remedios',
+                    'Friedrich Wilhelm Viktor Albert von Preussen'
+                ]
+            },
+            number: {
+                integer: ['42', '1000000', '0'],
+                decimal: ['3.14159', '0.001', '999999.999999'],
+                negative: ['-42', '-3.14159', '-0.001'],
+                scientific: ['1.23e+5', '9.876e-4', '3.14159e+10'],
+                special: ['Infinity', 'NaN', '0xFF']
+            },
+            creditCard: {
+                visa: ['4532015112830366', '4532778771091795', '4532915780385389'],
+                mastercard: ['5425233430109903', '5425233430109903', '5425233430109903'],
+                amex: ['371449635398431', '378282246310005', '371449635398431'],
+                invalid: ['1234567890123456', '9999999999999999', '0000000000000000']
+            },
+            date: {
+                us: ['12/31/2023', '01/01/2024', '02/29/2024'],
+                eu: ['31/12/2023', '01/01/2024', '29/02/2024'],
+                iso: ['2023-12-31', '2024-01-01', '2024-02-29'],
+                invalid: ['13/45/2023', '02/30/2024', '2024/13/01']
+            },
+            specialChars: {
+                sql: [
+                    "'; DROP TABLE users; --",
+                    "' OR '1'='1",
+                    "); DELETE FROM customers; --"
+                ],
+                html: [
+                    '&lt;script&gt;alert("XSS");&lt;/script&gt;',
+                    '<img src="x" alt="" />',
+                    '<!--Comment-->'
+                ],
+                emoji: [
+                    '😀 😎 🤖 💻 🌍',
+                    '🎉 🎊 🎈 🎂 🎁',
+                    '👨‍👩‍👧‍👦 👾 🤡 👻'
+                ],
+                unicode: [
+                    '∑ π μ λ ∞ ∆ ∏',
+                    '☀ ☂ ★ ☭ ☮ ☯ ♠',
+                    '™ © ® ¢ € ¥ £'
+                ]
+            },
+            url: {
+                simple: [
+                    'https://example.com',
+                    'http://test.com',
+                    'https://domain.com'
+                ],
+                complex: [
+                    'https://sub.domain.com:8080/path?param=value#fragment',
+                    'https://api.service.com/v1/users?id=123&type=admin',
+                    'https://app.domain.com/path/to/resource?q=search+term&page=1'
+                ],
+                special: [
+                    'https://domain.com/path-with-dashes',
+                    'https://domain.com/path_with_underscores',
+                    'https://domain.com/path.with.dots'
+                ],
+                invalid: [
+                    'not-a-url',
+                    'http:/missing-slash.com',
+                    'ftp:invalid-protocol'
+                ]
+            },
+            phone: {
+                us: [
+                    '+1 (555) 123-4567',
+                    '555-123-4567',
+                    '(555) 123-4567'
+                ],
+                uk: [
+                    '+44 20 7123 4567',
+                    '020 7123 4567',
+                    '07700 900123'
+                ],
+                international: [
+                    '+86 10 6988 6543',
+                    '+33 1 23 45 67 89',
+                    '+91 22 2778 4567'
+                ],
+                invalid: [
+                    '123-456-7',
+                    '+1234',
+                    '(555) ABC-DEFG'
+                ]
+            },
+            password: {
+                simple: [
+                    'password123',
+                    'qwerty',
+                    'letmein'
+                ],
+                complex: [
+                    'P@ssw0rd!',
+                    'C0mpl3xP@ss',
+                    'Str0ngP@ssw0rd'
+                ],
+                special: [
+                    'P@$$w0rd!',
+                    'P@$$w0rd123!',
+                    'P@$$w0rd!@#'
+                ],
+                long: [
+                    'ThisIsAVeryLongPassword123!',
+                    'AnotherVeryLongPasswordWithSpecialChars!@#',
+                    'YetAnotherLongPasswordWithNumbers123456'
+                ]
+            }
+        };
+
+        function getRandomItem(array) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+
+        function appendOutput(text) {
+            const output = document.getElementById('outputField');
+            output.value = output.value ? output.value + '\n' + text : text;
+        }
+
+        function clearOutput() {
+            document.getElementById('outputField').value = '';
+        }
+
+        function copyToClipboard() {
+            const output = document.getElementById('outputField');
+            output.select();
+            document.execCommand('copy');
+        }
+
+        function generateEmail(type) {
+            appendOutput(getRandomItem(testData.email[type]));
+        }
+
+        function generateName(type) {
+            appendOutput(getRandomItem(testData.name[type]));
+        }
+
+        function generateNumber(type) {
+            appendOutput(getRandomItem(testData.number[type]));
+        }
+
+        function generateCreditCard(type) {
+            appendOutput(getRandomItem(testData.creditCard[type]));
+        }
+
+        function generateDate(type) {
+            appendOutput(getRandomItem(testData.date[type]));
+        }
+
+        function generateSpecialChars(type) {
+            appendOutput(getRandomItem(testData.specialChars[type]));
+        }
+
+        function generateURL(type) {
+            appendOutput(getRandomItem(testData.url[type]));
+        }
+
+        function generatePhone(type) {
+            appendOutput(getRandomItem(testData.phone[type]));
+        }
+
+        function generatePassword(type) {
+            appendOutput(getRandomItem(testData.password[type]));
+        }
+
+        function showCategory() {
+            const categories = document.querySelectorAll('.category');
+            categories.forEach(category => category.style.display = 'none');
+            const selectedCategory = document.getElementById('categorySelect').value;
+            if (selectedCategory) {
+                document.getElementById(selectedCategory).style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
