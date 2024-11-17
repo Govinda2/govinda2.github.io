@@ -3,173 +3,589 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comprehensive Test Data Generator</title>
+    <title>Test Data Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/faker@5.5.3/dist/faker.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
             background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
         .container {
-            max-width: 800px;
-            margin: auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
         }
         h1 {
             text-align: center;
-        }
-        .generator {
-            background-color: #ffffff;
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 5px;
-        }
-        .generator select, .generator input, .generator button {
-            margin: 5px 0;
-            padding: 10px;
-            width: 100%;
-        }
-        .output {
-            margin-top: 10px;
-            font-weight: bold;
             color: #333;
-            white-space: pre-wrap;
+        }
+        .dropdown, .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        select, input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Comprehensive Test Data Generator</h1>
-        
-        <div class="generator">
-            <label for="utilitySelect">Select Test Data Type:</label>
-            <select id="utilitySelect">
-                <option value="email">Generate Random Emails</option>
-                <option value="uuid">Generate UUIDs</option>
-                <option value="timestamp">Generate Timestamps</option>
-                <option value="phone">Generate Random Phone Numbers</option>
-                <option value="name">Generate Random Names</option>
-                <option value="address">Generate Random Addresses</option>
-                <option value="creditCard">Generate Credit Card Numbers</option>
-                <option value="ssn">Generate Social Security Numbers (SSNs)</option>
-                <!-- Add more options here for additional utilities -->
+        <h1>Test Data Generator</h1>
+        <div class="dropdown">
+            <label for="category">Category:</label>
+            <select id="category" onchange="updateSubcategories()">
+                <option value="">Select Category</option>
+                <option value="finance">Finance</option>
+                <option value="location">Location</option>
+                <option value="date">Date</option>
+                <option value="internet">Internet</option>
+                <option value="name">Name</option>
+                <option value="address">Address</option>
+                <option value="company">Company</option>
+                <option value="commerce">Commerce</option>
+                <option value="phone">Phone</option>
+                <option value="image">Image</option>
+                <option value="lorem">Lorem</option>
+                <option value="random">Random</option>
+                <option value="music">Music</option>
+                <option value="system">System</option>
+                <option value="vehicle">Vehicle</option>
+                <option value="color">Color</option>
+                <option value="animal">Animal</option>
+                <option value="food">Food</option>
+                <option value="sport">Sport</option>
             </select>
-            
-            <label for="count">Number of Data Entries:</label>
-            <input type="number" id="count" min="1" max="100" value="1">
-            
-            <button onclick="generateData()">Generate</button>
-            
-            <div class="output" id="output"></div>
         </div>
-        <a href="utility_index.html">Back to Home</a>
+        <div class="dropdown">
+            <label for="subcategory">Subcategory:</label>
+            <select id="subcategory">
+                <option value="">Select Subcategory</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="count">Number of Data Entries:</label>
+            <input type="number" id="count" min="1" value="1">
+        </div>
+        <button onclick="generateTestData()">Generate Test Data</button>
+        <div class="result" id="result"></div>
     </div>
 
     <script>
-        function generateData() {
-            const utility = document.getElementById("utilitySelect").value;
-            const count = parseInt(document.getElementById("count").value);
-            const outputDiv = document.getElementById("output");
-            outputDiv.innerText = "";  // Clear previous output
-            let results = [];
+        const subcategories = {
+            finance: [
+                'Account Name', 'Account Number', 'Amount', 'BIC', 'Bitcoin Address', 'Credit Card CVV', 
+                'Credit Card Issuer', 'Credit Card Number', 'Currency', 'Currency Code', 'Currency Name', 
+                'Currency Symbol', 'Ethereum Address', 'IBAN', 'Litecoin Address', 'Masked Number', 
+                'PIN', 'Routing Number', 'Transaction Description', 'Transaction Type'
+            ],
+            location: ['City', 'Country', 'Latitude', 'Longitude'],
+            date: ['Past Date', 'Future Date', 'Recent Date'],
+            internet: ['Email', 'IP Address', 'URL', 'User Agent'],
+            name: ['First Name', 'Last Name', 'Full Name'],
+            address: ['Street Address', 'City', 'State', 'Zip Code', 'Country'],
+            company: ['Company Name', 'Company Suffix', 'Catch Phrase', 'BS'],
+            commerce: ['Product Name', 'Price', 'Department', 'Product Adjective', 'Product Material', 'Product'],
+            phone: ['Phone Number'],
+            image: ['Image URL', 'Avatar', 'Abstract', 'Animals', 'Business', 'Cats', 'City', 'Food', 'Nightlife', 'Fashion', 'People', 'Nature', 'Sports', 'Technics', 'Transport'],
+            lorem: ['Word', 'Words', 'Sentence', 'Sentences', 'Paragraph', 'Paragraphs'],
+            random: ['UUID', 'Boolean', 'Number', 'Float', 'Array Element', 'Object Element', 'Alpha', 'Alpha Numeric', 'Hexadecimal'],
+            music: ['Genre'],
+            system: ['File Name', 'Common File Name', 'Mime Type', 'Common File Type', 'Common File Extension', 'File Type', 'File Extension', 'Directory Path', 'File Path', 'Semver'],
+            vehicle: ['Vehicle', 'Manufacturer', 'Model', 'Type', 'Fuel', 'Vin'],
+            color: ['Color Name', 'Hex Color', 'Rgb Color'],
+            animal: ['Dog', 'Cat', 'Bird', 'Fish'],
+            food: ['Fruit', 'Vegetable', 'Dish', 'Drink'],
+            sport: ['Sport Name', 'Team', 'Player']
+        };
 
-            for (let i = 0; i < count; i++) {
-                switch (utility) {
-                    case "email":
-                        results.push(generateRandomEmail());
-                        break;
-                    case "uuid":
-                        results.push(generateUUID());
-                        break;
-                    case "timestamp":
-                        results.push(generateTimestamp());
-                        break;
-                    case "phone":
-                        results.push(generateRandomPhoneNumber());
-                        break;
-                    case "name":
-                        results.push(generateRandomName());
-                        break;
-                    case "address":
-                        results.push(generateRandomAddress());
-                        break;
-                    case "creditCard":
-                        results.push(generateCreditCardNumber());
-                        break;
-                    case "ssn":
-                        results.push(generateSSN());
-                        break;
-                    // Add more cases here for additional utilities
+        function updateSubcategories() {
+            const category = document.getElementById('category').value;
+            const subcategorySelect = document.getElementById('subcategory');
+            subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+            if (category && subcategories[category]) {
+                subcategories[category].forEach(subcategory => {
+                    const option = document.createElement('option');
+                    option.value = subcategory.toLowerCase().replace(/ /g, '_');
+                    option.textContent = subcategory;
+                    subcategorySelect.appendChild(option);
+                });
+            }
+        }
+
+        function generateTestData() {
+            const category = document.getElementById('category').value;
+            const subcategory = document.getElementById('subcategory').value;
+            const count = parseInt(document.getElementById('count').value, 10);
+            let result = '';
+
+            if (category && subcategory && count > 0) {
+                const data = [];
+                for (let i = 0; i < count; i++) {
+                    switch (category) {
+                        case 'finance':
+                            data.push(generateFinanceData(subcategory));
+                            break;
+                        case 'location':
+                            data.push(generateLocationData(subcategory));
+                            break;
+                        case 'date':
+                            data.push(generateDateData(subcategory));
+                            break;
+                        case 'internet':
+                            data.push(generateInternetData(subcategory));
+                            break;
+                        case 'name':
+                            data.push(generateNameData(subcategory));
+                            break;
+                        case 'address':
+                            data.push(generateAddressData(subcategory));
+                            break;
+                        case 'company':
+                            data.push(generateCompanyData(subcategory));
+                            break;
+                        case 'commerce':
+                            data.push(generateCommerceData(subcategory));
+                            break;
+                        case 'phone':
+                            data.push(generatePhoneData(subcategory));
+                            break;
+                        case 'image':
+                            data.push(generateImageData(subcategory));
+                            break;
+                        case 'lorem':
+                            data.push(generateLoremData(subcategory));
+                            break;
+                        case 'random':
+                            data.push(generateRandomData(subcategory));
+                            break;
+                        case 'music':
+                            data.push(generateMusicData(subcategory));
+                            break;
+                        case 'system':
+                            data.push(generateSystemData(subcategory));
+                            break;
+                        case 'vehicle':
+                            data.push(generateVehicleData(subcategory));
+                            break;
+                        case 'color':
+                            data.push(generateColorData(subcategory));
+                            break;
+                        case 'animal':
+                            data.push(generateAnimalData(subcategory));
+                            break;
+                        case 'food':
+                            data.push(generateFoodData(subcategory));
+                            break;
+                        case 'sport':
+                            data.push(generateSportData(subcategory));
+                            break;
+                        default:
+                            data.push('Invalid category');
+                    }
                 }
+                result = data.join('<br>');
+            } else {
+                result = 'Please select category, subcategory, and enter a valid number of data entries';
             }
 
-            outputDiv.innerText = results.join("\n");
+            document.getElementById('result').innerHTML = result;
         }
 
-        // Sample Utility Functions
-        function generateRandomEmail() {
-            const domains = ["example.com", "test.com", "mail.com"];
-            const randomName = "user" + Math.floor(Math.random() * 10000);
-            const randomDomain = domains[Math.floor(Math.random() * domains.length)];
-            return `${randomName}@${randomDomain}`;
-        }
-
-        function generateUUID() {
-            return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-                (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
-            );
-        }
-
-        function generateTimestamp() {
-            return new Date().toISOString();
-        }
-
-        function generateRandomPhoneNumber() {
-            return "+1" + Math.floor(1000000000 + Math.random() * 9000000000);
-        }
-
-        function generateRandomName() {
-            const firstNames = ["John", "Jane", "Alex", "Emily", "Chris"];
-            const lastNames = ["Doe", "Smith", "Brown", "Johnson", "Lee"];
-            const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-            const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-            return `${firstName} ${lastName}`;
-        }
-
-        function generateRandomAddress() {
-            const streets = ["Main St", "Broadway", "Maple Ave", "Cedar St", "5th Ave"];
-            const cities = ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix"];
-            const street = Math.floor(Math.random() * 1000) + " " + streets[Math.floor(Math.random() * streets.length)];
-            const city = cities[Math.floor(Math.random() * cities.length)];
-            const postalCode = Math.floor(10000 + Math.random() * 90000);
-            return `${street}, ${city}, ${postalCode}`;
-        }
-
-        function generateCreditCardNumber() {
-            const prefix = "4" + Math.floor(Math.random() * 100000000000000).toString().padStart(15, "0");
-            return prefix + calculateLuhnCheckDigit(prefix);
-        }
-
-        function calculateLuhnCheckDigit(num) {
-            let sum = 0;
-            let alt = true;
-            for (let i = num.length - 1; i >= 0; i--) {
-                let n = parseInt(num.charAt(i), 10);
-                if (alt) {
-                    n *= 2;
-                    if (n > 9) n -= 9;
-                }
-                sum += n;
-                alt = !alt;
+        function generateFinanceData(subcategory) {
+            switch (subcategory) {
+                case 'account_name':
+                    return faker.finance.accountName();
+                case 'account_number':
+                    return faker.finance.account();
+                case 'amount':
+                    return faker.finance.amount();
+                case 'bic':
+                    return faker.finance.bic();
+                case 'bitcoin_address':
+                    return faker.finance.bitcoinAddress();
+                case 'credit_card_cvv':
+                    return faker.finance.creditCardCVV();
+                case 'credit_card_issuer':
+                    return faker.finance.creditCardIssuer();
+                case 'credit_card_number':
+                    return faker.finance.creditCardNumber();
+                case 'currency':
+                    return faker.finance.currency();
+                case 'currency_code':
+                    return faker.finance.currencyCode();
+                case 'currency_name':
+                    return faker.finance.currencyName();
+                case 'currency_symbol':
+                    return faker.finance.currencySymbol();
+                case 'ethereum_address':
+                    return faker.finance.ethereumAddress();
+                case 'iban':
+                    return faker.finance.iban();
+                case 'litecoin_address':
+                    return faker.finance.litecoinAddress();
+                case 'masked_number':
+                    return faker.finance.mask();
+                case 'pin':
+                    return faker.finance.pinNumber();
+                case 'routing_number':
+                    return faker.finance.routingNumber();
+                case 'transaction_description':
+                    return faker.finance.transactionDescription();
+                case 'transaction_type':
+                    return faker.finance.transactionType();
+                default:
+                    return 'Invalid subcategory';
             }
-            return (10 - (sum % 10)) % 10;
         }
 
-        function generateSSN() {
-            return `${Math.floor(100 + Math.random() * 900)}-${Math.floor(10 + Math.random() * 90)}-${Math.floor(1000 + Math.random() * 9000)}`;
+        function generateLocationData(subcategory) {
+            switch (subcategory) {
+                case 'city':
+                    return faker.address.city();
+                case 'country':
+                    return faker.address.country();
+                case 'latitude':
+                    return faker.address.latitude();
+                case 'longitude':
+                    return faker.address.longitude();
+                default:
+                    return 'Invalid subcategory';
+            }
         }
 
-        // Additional functions for other utilities go here
+        function generateDateData(subcategory) {
+            switch (subcategory) {
+                case 'past_date':
+                    return faker.date.past().toString();
+                case 'future_date':
+                    return faker.date.future().toString();
+                case 'recent_date':
+                    return faker.date.recent().toString();
+                default:
+                    return 'Invalid subcategory';
+            }
+        }
+
+        function generateInternetData(subcategory) {
+            switch (subcategory) {
+                case 'email':
+                    return faker.internet.email();
+                case 'ip_address':
+                    return faker.internet.ip();
+                case 'url':
+                    return faker.internet.url();
+                case 'user_agent':
+                    return faker.internet.userAgent();
+                default:
+                    return 'Invalid subcategory';
+            }
+        }
+
+        function generateNameData(subcategory) {
+            switch (subcategory) {
+                case 'first_name':
+                    return faker.name.firstName();
+                case 'last_name':
+                    return faker.name.lastName();
+                case 'full_name':
+                    return faker.name.findName();
+                default:
+                    return 'Invalid subcategory';
+            }
+        }
+
+        function generateAddressData(subcategory) {
+            switch (subcategory) {
+                case 'street_address':
+                    return faker.address.streetAddress();
+                case 'city':
+                    return faker.address.city();
+                case 'state':
+                    return faker.address.state();
+                case 'zip_code':
+                    return faker.address.zipCode();
+                case 'country':
+                    return faker.address.country();
+                default:
+                    return 'Invalid subcategory';
+            }
+        }
+
+        function generateCompanyData(subcategory) {
+            switch (subcategory) {
+                case 'company_name':
+                    return faker.company.companyName();
+                case 'company_suffix':
+                    return faker.company.companySuffix();
+                case 'catch_phrase':
+                    return faker.company.catchPhrase();
+                case 'bs':
+                    return faker.company.bs();
+                default:
+                    return 'Invalid subcategory';
+            }
+        }
+
+        function generateCommerceData(subcategory) {
+            switch (subcategory) {
+                case 'product_name':
+                    return faker.commerce.productName();
+                case 'price':
+                    return faker.commerce.price();
+                case 'department':
+                    return faker.commerce.department();
+                case 'product_adjective':
+                    return faker.commerce.productAdjective();
+                case 'product_material':
+                    return faker.commerce.productMaterial();
+                case 'product':
+                    return faker.commerce.product();
+                default:
+                    return 'Invalid subcategory';
+            }
+        }
+
+        function generatePhoneData(subcategory) {
+            switch (subcategory) {
+                case 'phone_number':
+                    return faker.phone.phoneNumber();
+                default:
+                    return 'Invalid subcategory';
+            }
+        }
+
+        function generateImageData(subcategory) {
+            switch (subcategory) {
+                case 'image_url':
+                    return faker.image.imageUrl();
+                case 'avatar':
+                    return faker.image.avatar();
+                case 'abstract':
+                    return faker.image.abstract();
+                case 'animals':
+                    return faker.image.animals();
+                case 'business':
+                    return faker.image.business();
+                case 'cats':
+                    return faker.image.cats();
+                case 'city':
+                    return faker.image.city();
+                case 'food':
+                    return faker.image.food();
+                case 'nightlife':
+                    return faker.image.nightlife();
+                case 'fashion':
+                    return faker.image.fashion();
+                case 'people':
+                    return faker.image.people();
+                case 'nature':
+                    return faker.image.nature();
+                case 'sports':
+                    return faker.image.sports();
+                case 'technics':
+                    return faker.image.technics();
+                case 'transport':
+                    return faker.image.transport();
+                default:
+                    return 'Invalid subcategory';
+            }
+        }
+
+        function generateLoremData(subcategory) {
+            switch (subcategory) {
+                case 'word':
+                    return faker.lorem.word();
+                case 'words':
+                    return faker.lorem.words();
+                case 'sentence':
+                    return faker.lorem.sentence();
+                case 'sentences':
+                    return faker.lorem.sentences();
+                case 'paragraph':
+                    return faker.lorem.paragraph();
+                case 'paragraphs':
+                    return faker.lorem.paragraphs();
+                default:
+                    return 'Invalid subcategory';
+            }
+        }
+
+        function generateRandomData(subcategory) {
+            switch (subcategory) {
+                case 'uuid':
+                    return faker.datatype.uuid();
+                case 'boolean':
+                    return faker.datatype.boolean();
+                case 'number':
+                    return faker.datatype.number();
+                case 'float':
+                    return faker.datatype.float();
+                case 'array_element':
+                    return faker.random.arrayElement(['a', 'b', 'c']);
+                case 'object_element':
+                    return faker.random.objectElement({key: 'value'});
+                case 'alpha':
+                    return faker.random.alpha();
+                case 'alpha_numeric':
+                    return faker.random.alphaNumeric();
+                case 'hexadecimal':
+                    return faker.random.hexadecimal();
+                default:
+                    return 'Invalid subcategory';
+            }
+        }
+
+        function generateMusicData(subcategory) {
+            switch (subcategory) {
+                case 'genre':
+                    return faker.music.genre();
+                default:
+                    return 'Invalid subcategory';
+            }
+        }
+
+        function generateSystemData(subcategory) {
+            switch (subcategory) {
+                case 'file_name':
+                    return faker.system.fileName();
+                case 'common_file_name':
+                    return faker.system.commonFileName();
+                case 'mime_type':
+                    return faker.system.mimeType();
+                case 'common_file_type':
+                    return faker.system.commonFileType();
+                case 'common_file_extension':
+                    return faker.system.commonFileExt();
+                case 'file_type':
+                    return faker.system.fileType();
+                case 'file_extension':
+                    return faker.system.fileExt();
+                case 'directory_path':
+                    return faker.system.directoryPath();
+                case 'file_path':
+                    return faker.system.filePath();
+                case 'semver':
+                    return faker.system.semver();
+                default:
+                    return 'Invalid subcategory';
+            }
+        }
+
+        function generateVehicleData(subcategory) {
+            switch (subcategory) {
+                case 'vehicle':
+                    return faker.vehicle.vehicle();
+                case 'manufacturer':
+                    return faker.vehicle.manufacturer();
+                case 'model':
+                    return faker.vehicle.model();
+                case 'type':
+                    return faker.vehicle.type();
+                case 'fuel':
+                    return faker.vehicle.fuel();
+                case 'vin':
+                    return faker.vehicle.vin();
+                default:
+                    return 'Invalid subcategory';
+            }
+        }
+
+        function generateColorData(subcategory) {
+            switch (subcategory) {
+                case 'color_name':
+                    return faker.color.colorName();
+                case 'hex_color':
+                    return faker.color.hex();
+                case 'rgb_color':
+                    return faker.color.rgb();
+                default:
+                    return 'Invalid subcategory';
+            }
+        }
+
+        function generateAnimalData(subcategory) {
+            switch (subcategory) {
+                case 'dog':
+                    return faker.animal.dog();
+                case 'cat':
+                    return faker.animal.cat();
+                case 'bird':
+                    return faker.animal.bird();
+                case 'fish':
+                    return faker.animal.fish();
+                default:
+                    return 'Invalid subcategory';
+            }
+        }
+
+        function generateFoodData(subcategory) {
+            switch (subcategory) {
+                case 'fruit':
+                    return faker.food.fruit();
+                case 'vegetable':
+                    return faker.food.vegetable();
+                case 'dish':
+                    return faker.food.dish();
+                case 'drink':
+                    return faker.food.drink();
+                default:
+                    return 'Invalid subcategory';
+            }
+        }
+
+        function generateSportData(subcategory) {
+            switch (subcategory) {
+                case 'sport_name':
+                    return faker.sport.sportName();
+                case 'team':
+                    return faker.sport.team();
+                case 'player':
+                    return faker.sport.player();
+                default:
+                    return 'Invalid subcategory';
+            }
+        }
     </script>
 </body>
 </html>
