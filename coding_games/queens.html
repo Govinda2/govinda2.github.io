@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Little Queen Puzzle Game</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive;
+            background: linear-gradient(135deg, #FFD700, #FF69B4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        .game-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .chessboard {
+            display: grid;
+            grid-template-columns: repeat(4, 80px);
+            grid-template-rows: repeat(4, 80px);
+            gap: 2px;
+            margin: 20px auto;
+        }
+        .square {
+            width: 80px;
+            height: 80px;
+            border: 2px solid #8B4513;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .square:hover {
+            transform: scale(1.05);
+            background-color: rgba(255, 215, 0, 0.3);
+        }
+        .white { background-color: #FFDAB9; }
+        .black { background-color: #CD853F; }
+        #status {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #8B4513;
+        }
+        #reset-btn {
+            background-color: #FF6347;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #reset-btn:hover {
+            background-color: #FF4500;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>👑 Little Queen's Safe Path 👑</h1>
+        <div id="status">Place 2 Queens without attacking each other!</div>
+        <div class="chessboard" id="chessboard"></div>
+        <button id="reset-btn">Reset Game</button>
+    </div>
+
+    <script>
+        class QueenPuzzle {
+            constructor() {
+                this.board = Array(4).fill().map(() => Array(4).fill(0));
+                this.queenPositions = [];
+                this.renderBoard();
+                this.setupEventListeners();
+            }
+
+            renderBoard() {
+                const chessboard = document.getElementById('chessboard');
+                chessboard.innerHTML = '';
+                for (let row = 0; row < 4; row++) {
+                    for (let col = 0; col < 4; col++) {
+                        const square = document.createElement('div');
+                        square.classList.add('square');
+                        square.classList.add((row + col) % 2 === 0 ? 'white' : 'black');
+                        square.dataset.row = row;
+                        square.dataset.col = col;
+                        
+                        if (this.board[row][col] === 1) {
+                            square.innerHTML = '👑';
+                        }
+                        
+                        chessboard.appendChild(square);
+                    }
+                }
+            }
+
+            setupEventListeners() {
+                const chessboard = document.getElementById('chessboard');
+                const resetBtn = document.getElementById('reset-btn');
+
+                chessboard.addEventListener('click', (e) => {
+                    const square = e.target.closest('.square');
+                    if (!square) return;
+
+                    const row = parseInt(square.dataset.row);
+                    const col = parseInt(square.dataset.col);
+
+                    this.placeQueen(row, col);
+                });
+
+                resetBtn.addEventListener('click', () => this.resetGame());
+            }
+
+            placeQueen(row, col) {
+                const status = document.getElementById('status');
+
+                if (this.isValidMove(row, col)) {
+                    this.board[row][col] = 1;
+                    this.queenPositions.push([row, col]);
+                    
+                    if (this.queenPositions.length === 2) {
+                        status.textContent = '🎉 Congratulations! You solved the puzzle! 🎉';
+                        status.style.color = '#32CD32';
+                    } else {
+                        status.textContent = `Queens placed: ${this.queenPositions.length}/2`;
+                    }
+
+                    this.renderBoard();
+                } else {
+                    status.textContent = '⚠️ Cannot place Queen here! Try another square.';
+                    status.style.color = '#FF4500';
+                }
+            }
+
+            isValidMove(row, col) {
+                // Check if square is already occupied
+                if (this.board[row][col] === 1) return false;
+
+                // Check row and column conflicts
+                for (let i = 0; i < 4; i++) {
+                    if (this.board[row][i] === 1 || this.board[i][col] === 1) return false;
+                }
+
+                // Check diagonals
+                for (let i = 0; i < 4; i++) {
+                    for (let j = 0; j < 4; j++) {
+                        if (this.board[i][j] === 1) {
+                            if (Math.abs(row - i) === Math.abs(col - j)) return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
+
+            resetGame() {
+                this.board = Array(4).fill().map(() => Array(4).fill(0));
+                this.queenPositions = [];
+                document.getElementById('status').textContent = 'Place 2 Queens without attacking each other!';
+                document.getElementById('status').style.color = '#8B4513';
+                this.renderBoard();
+            }
+        }
+
+        // Initialize the game when the page loads
+        document.addEventListener('DOMContentLoaded', () => new QueenPuzzle());
+    </script>
+</body>
+</html>
