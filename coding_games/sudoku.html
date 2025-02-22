@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kids' 4x4 Sudoku - Colorful Fun!</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(to bottom right, #ffeb3b, #f06292);
+            font-family: 'Comic Sans MS', cursive;
+        }
+
+        h1 {
+            color: #2196f3;
+            text-shadow: 2px 2px #fff;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .sudoku-container {
+            display: grid;
+            grid-template-columns: repeat(4, 80px);
+            grid-gap: 5px;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .cell {
+            width: 80px;
+            height: 80px;
+            background-color: #fff;
+            border: 3px solid #ff9800;
+            border-radius: 10px;
+            font-size: 40px;
+            text-align: center;
+            color: #4caf50;
+            font-weight: bold;
+        }
+
+        .cell:nth-child(odd) {
+            background-color: #e1f5fe;
+        }
+
+        .cell:nth-child(even) {
+            background-color: #f1f8e9;
+        }
+
+        .cell[readonly] {
+            background-color: #ffccbc;
+            color: #d81b60;
+            cursor: not-allowed;
+        }
+
+        .cell:focus {
+            outline: none;
+            border-color: #2196f3;
+            box-shadow: 0 0 10px #2196f3;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .helper-label {
+            color: #2196f3;
+            font-size: 18px;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px 10px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        /* Custom Popup Styles */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            border: 5px solid #ff9800;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            font-size: 24px;
+            text-align: center;
+            z-index: 1000;
+        }
+
+        .popup button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #2196f3;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .popup button:hover {
+            background-color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Kids' Sudoku Fun!</h1>
+    <div class="sudoku-container">
+        <!-- Row 1 -->
+        <input type="number" class="cell" value="1" readonly>
+        <input type="number" class="cell" min="1" max="4">
+        <input type="number" class="cell" value="3" readonly>
+        <input type="number" class="cell" min="1" max="4">
+
+        <!-- Row 2 -->
+        <input type="number" class="cell" min="1" max="4">
+        <input type="number" class="cell" value="4" readonly>
+        <input type="number" class="cell" min="1" max="4">
+        <input type="number" class="cell" value="2" readonly>
+
+        <!-- Row 3 -->
+        <input type="number" class="cell" value="2" readonly>
+        <input type="number" class="cell" min="1" max="4">
+        <input type="number" class="cell" value="4" readonly>
+        <input type="number" class="cell" min="1" max="4">
+
+        <!-- Row 4 -->
+        <input type="number" class="cell" min="1" max="4">
+        <input type="number" class="cell" value="3" readonly>
+        <input type="number" class="cell" min="1" max="4">
+        <input type="number" class="cell" value="1" readonly>
+    </div>
+    <div class="helper-label">How to Play: Fill the empty boxes with numbers 1-4. No same number in a row or column!</div>
+
+    <!-- Custom Popup -->
+    <div id="customPopup" class="popup">
+        <div id="popupMessage"></div>
+        <button onclick="closePopup()">OK</button>
+    </div>
+
+    <audio id="clapSound" src="https://www.soundjay.com/buttons/clap-01a.mp3"></audio>
+
+    <script>
+        const cells = document.querySelectorAll('.cell:not([readonly])');
+        const allCells = document.querySelectorAll('.cell');
+        const clapSound = document.getElementById('clapSound');
+        const popup = document.getElementById('customPopup');
+        const popupMessage = document.getElementById('popupMessage');
+
+        function showPopup(message) {
+            popupMessage.innerHTML = message;
+            popup.style.display = 'block';
+        }
+
+        function closePopup() {
+            popup.style.display = 'none';
+        }
+
+        cells.forEach(cell => {
+            cell.addEventListener('input', (e) => {
+                // Allow only numbers 1-4
+                let value = e.target.value;
+                if (value < 1 || value > 4 || isNaN(value)) {
+                    e.target.value = '';
+                    showPopup `<span style="color: red">Oops!</span> Use only <span style="color: green">numbers 1 to 4</span>!`;
+                    return;
+                }
+
+                // Check for duplicates in row and column
+                const rowIndex = Math.floor([...cell.parentNode.children].indexOf(cell) / 4);
+                const colIndex = [...cell.parentNode.children].indexOf(cell) % 4;
+                checkDuplicates(rowIndex, colIndex, value, e.target);
+
+                // Check if Sudoku is complete
+                checkCompletion();
+            });
+        });
+
+        function checkDuplicates(rowIndex, colIndex, value, currentCell) {
+            let rowValues = [];
+            let colValues = [];
+
+            // Get values in the same row
+            for (let i = rowIndex * 4; i < rowIndex * 4 + 4; i++) {
+                let cellValue = allCells[i].value;
+                if (cellValue) rowValues.push(cellValue);
+            }
+
+            // Get values in the same column
+            for (let i = colIndex; i < 16; i += 4) {
+                let cellValue = allCells[i].value;
+                if (cellValue) colValues.push(cellValue);
+            }
+
+            // Check for duplicates
+            if (rowValues.filter(v => v === value).length > 1) {
+                showPopup(`<span style="color: red">Oops!</span> <span style="color: purple">${value}</span> is already in this <span style="color: blue">row</span>! Try a different number.`);
+                currentCell.value = '';
+            } else if (colValues.filter(v => v === value).length > 1) {
+                showPopup(`<span style="color: red">Oops!</span> <span style="color: purple">${value}</span> is already in this <span style="color: blue">column</span>! Try a different number.`);
+                currentCell.value = '';
+            }
+        }
+
+        function checkCompletion() {
+            let isComplete = true;
+            allCells.forEach(cell => {
+                if (!cell.value) isComplete = false; // Check if any cell is empty
+            });
+
+            if (isComplete) {
+                let rowsValid = true;
+                let colsValid = true;
+
+                // Check rows
+                for (let r = 0; r < 4; r++) {
+                    let row = [];
+                    for (let i = r * 4; i < r * 4 + 4; i++) row.push(allCells[i].value);
+                    if (new Set(row).size !== 4) rowsValid = false;
+                }
+
+                // Check columns
+                for (let c = 0; c < 4; c++) {
+                    let col = [];
+                    for (let i = c; i < 16; i += 4) col.push(allCells[i].value);
+                    if (new Set(col).size !== 4) colsValid = false;
+                }
+
+                if (rowsValid && colsValid) {
+                    clapSound.play();
+                    showPopup(`<span style="color: green">Yay!</span> <span style="color: purple">You Did It!</span> Great job solving the Sudoku!`);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
