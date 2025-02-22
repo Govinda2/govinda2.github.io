@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Loop Adventure: Train Builder!</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #87CEEB, #98FB98);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #333;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px;
+            max-width: 800px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        }
+
+        .train-builder {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .train-car {
+            width: 60px;
+            height: 40px;
+            background: #FF6B6B;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .train-car:hover {
+            transform: scale(1.1);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        button:hover:not(:disabled) {
+            background: #45a049;
+        }
+
+        .counter {
+            font-size: 24px;
+            margin: 10px 0;
+            color: #FF6B6B;
+        }
+
+        .message {
+            font-size: 18px;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .success {
+            background: #DFF2BF;
+            color: #4F8A10;
+        }
+
+        .challenge {
+            background: #BDE5F8;
+            color: #00529B;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .train-track {
+            display: flex;
+            gap: 5px;
+            margin: 20px 0;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            min-height: 60px;
+            align-items: center;
+            overflow-x: auto;
+        }
+
+        .level-indicator {
+            font-size: 20px;
+            color: #FF6B6B;
+            margin: 10px 0;
+        }
+
+        #explanation {
+            background: #FEEFB3;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .game-complete {
+            background: #DFF2BF;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚂 Loop Adventure: Train Builder! 🚂</h1>
+    
+    <div class="game-container">
+        <div class="level-indicator">Level: <span id="current-level">1</span></div>
+        <div id="challenge" class="challenge"></div>
+        <div id="explanation"></div>
+        
+        <div class="controls" id="controls">
+            <button onclick="addCars(1)" id="btn1">Add 1 Car</button>
+            <button onclick="addCars(2)" id="btn2">Add 2 Cars</button>
+            <button onclick="addCars(3)" id="btn3">Add 3 Cars</button>
+            <button onclick="resetTrain()">Reset Train</button>
+        </div>
+
+        <div class="counter">Cars in train: <span id="car-count">0</span></div>
+        
+        <div class="train-track" id="train-track"></div>
+        
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        const levels = [
+            {
+                challenge: "Build a train with 5 cars by clicking 'Add 1 Car' five times",
+                explanation: "This is like a loop that repeats 5 times. Each time through the loop, we add one car!",
+                target: 5,
+                maxMoves: 5,
+                preferredButton: 1
+            },
+            {
+                challenge: "Build a train with 6 cars using 'Add 2 Cars' button three times",
+                explanation: "This shows how loops can add multiple items each time! It's like counting by 2s.",
+                target: 6,
+                maxMoves: 3,
+                preferredButton: 2
+            },
+            {
+                challenge: "Build a train with 9 cars using 'Add 3 Cars' button three times",
+                explanation: "Now we're using a loop that adds 3 cars each time it runs. 3 × 3 = 9!",
+                target: 9,
+                maxMoves: 3,
+                preferredButton: 3
+            }
+        ];
+
+        let currentLevel = 0;
+        let carCount = 0;
+        let moves = 0;
+        let gameComplete = false;
+
+        function initLevel() {
+            if (currentLevel >= levels.length) {
+                showGameComplete();
+                return;
+            }
+
+            document.getElementById('current-level').textContent = currentLevel + 1;
+            document.getElementById('challenge').textContent = levels[currentLevel].challenge;
+            document.getElementById('explanation').textContent = levels[currentLevel].explanation;
+            resetTrain();
+            updateButtonStates();
+        }
+
+        function showGameComplete() {
+            gameComplete = true;
+            document.getElementById('challenge').innerHTML = 
+                "<div class='game-complete'>" +
+                "<h2>🏆 Congratulations! You've mastered loops by building trains!</h2>" +
+                "<p>You've learned how loops can repeat actions multiple times to build something bigger!</p>" +
+                "</div>";
+            document.getElementById('explanation').style.display = 'none';
+            document.getElementById('controls').style.display = 'none';
+            document.getElementById('message').style.display = 'none';
+        }
+
+        function addCars(number) {
+            if (gameComplete) return;
+            
+            moves++;
+            for(let i = 0; i < number; i++) {
+                const car = document.createElement('div');
+                car.className = 'train-car';
+                car.textContent = '🚃';
+                document.getElementById('train-track').appendChild(car);
+                carCount++;
+            }
+            document.getElementById('car-count').textContent = carCount;
+            
+            updateButtonStates();
+            checkLevel();
+        }
+
+        function updateButtonStates() {
+            if (gameComplete) return;
+            
+            const level = levels[currentLevel];
+            const remainingMoves = level.maxMoves - moves;
+            const remainingCars = level.target - carCount;
+
+            document.getElementById('btn1').disabled = remainingMoves <= 0 || remainingCars <= 0;
+            document.getElementById('btn2').disabled = remainingMoves <= 0 || remainingCars <= 0;
+            document.getElementById('btn3').disabled = remainingMoves <= 0 || remainingCars <= 0;
+        }
+
+        function resetTrain() {
+            if (gameComplete) return;
+            
+            document.getElementById('train-track').innerHTML = '';
+            carCount = 0;
+            moves = 0;
+            document.getElementById('car-count').textContent = carCount;
+            document.getElementById('message').textContent = '';
+            document.getElementById('message').className = 'message';
+            updateButtonStates();
+        }
+
+        function checkLevel() {
+            if (gameComplete) return;
+            
+            const level = levels[currentLevel];
+            
+            if (carCount === level.target && moves <= level.maxMoves) {
+                document.getElementById('message').textContent = 
+                    "🎉 Perfect! You've completed this level! Let's try the next one!";
+                document.getElementById('message').className = 'message success';
+                
+                setTimeout(() => {
+                    currentLevel++;
+                    initLevel();
+                }, 2000);
+            } else if (carCount > level.target || moves > level.maxMoves) {
+                document.getElementById('message').textContent = 
+                    "Oops! That's too many! Try again by clicking Reset Train.";
+            }
+        }
+
+        // Initialize first level
+        initLevel();
+    </script>
+</body>
+</html>
